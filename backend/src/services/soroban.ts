@@ -1,6 +1,7 @@
 import * as StellarSdk from "@stellar/stellar-sdk";
 import { config } from "../config";
 import { SorobanSimulationError, SorobanTransactionError } from "./sorobanErrors";
+import { getCachedSimulate, setCachedSimulate } from "./sorobanCache";
 
 const { rpc } = StellarSdk;
 
@@ -40,6 +41,15 @@ export class SorobanService {
     sourcePublicKey: string;
   }): Promise<T> {
     const { contractId, method, args, sourcePublicKey } = params;
+
+    // #86 — Redis cache: encode args as base64 XDR for a stable cache key.
+    // scValToNative is not round-trippable, so we key on the raw XDR bytes.
+    const argsKey = Buffer.from(args.map((a) => a.toXDR("base64")).join("|")).toString(
+      "base64"
+    );
+    const cached = await getCachedSimulate<T>(contractId, method, argsKey);
+    if (cached !== null) return cached;
+
     const sourceAccount = await this.server.getAccount(sourcePublicKey);
     const tx = this.buildInvocation(sourceAccount, contractId, method, args);
 
@@ -50,7 +60,9 @@ export class SorobanService {
         sim.error
       );
     }
-    return this.parseSimResult<T>(sim);
+    const result = this.parseSimResult<T>(sim);
+    await setCachedSimulate(contractId, method, argsKey, result);
+    return result;
   }
 
   /**

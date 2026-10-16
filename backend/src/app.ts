@@ -10,6 +10,7 @@ import { priceRouter } from "./routes/price";
 import { authRouter } from "./routes/auth";
 import { cspReportRouter } from "./routes/cspReport";
 import { flagsRouter } from "./routes/flags";
+import { devicesRouter } from "./routes/devices";
 import { errorHandler } from "./middleware/errorHandler";
 import { config } from "./config";
 import { StellarService } from "./services/stellar";
@@ -104,6 +105,8 @@ export function createApp(
   app.use("/api/v1/price", priceRouter);
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/flags", flagsRouter);
+  // #87 — push notification device registration
+  app.use("/api/v1/me/devices", devicesRouter);
 
   app.use((req, _res, next) => {
     next(

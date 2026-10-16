@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { config } from "./config";
+import { ensureDevicesTable } from "./services/deviceRegistry";
 
 export const pool = new Pool({ connectionString: config.DATABASE_URL });
 
@@ -24,4 +25,7 @@ export async function ensureAuditTable() {
       UNIQUE (source_public_key, idempotency_key)
     )
   `);
+
+  // #87 — device token table for push notifications.
+  await ensureDevicesTable(pool);
 }
