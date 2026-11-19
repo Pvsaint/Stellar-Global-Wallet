@@ -1,6 +1,6 @@
 {
   "name": "@globe-wallet/sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Typed client for the GlobeWallet API and Soroban contracts. Works in Node, browsers and React Native.",
   "license": "MIT",
   "type": "module",
